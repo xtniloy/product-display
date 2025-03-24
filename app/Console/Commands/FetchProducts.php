@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Events\ProductUpdated;
 use Illuminate\Console\Command;
 use App\Models\Product;
-use Illuminate\Support\Facades\Http;
+use GuzzleHttp\Client;
 class FetchProducts extends Command
 {
     /**
@@ -27,10 +27,11 @@ class FetchProducts extends Command
      */
     public function handle()
     {
-        $response = Http::get('https://fakestoreapi.com/products');
+        $client = new Client();
+        $response = $client->get('https://fakestoreapi.com/products');
 
-        if ($response->successful()) {
-            $products = $response->json();
+        if ($response->getStatusCode() == 200) {
+            $products = json_decode($response->getBody()->getContents(), true);
 
             foreach ($products as $product) {
                 $newProduct = Product::updateOrCreate(
